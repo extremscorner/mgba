@@ -189,35 +189,36 @@ void GBAGUIRunloop(struct GBAGUIRunner* runner) {
 			break;
 		}
 
+		// TODO: Message box API
+		runner->params.drawStart();
 		if (runner->params.guiPrepare) {
 			runner->params.guiPrepare();
 		}
-		// TODO: Message box API
-		runner->params.drawStart();
 		GUIFontPrint(runner->params.font, runner->params.width / 2, (GUIFontHeight(runner->params.font) + runner->params.height) / 2, GUI_TEXT_CENTER, 0xFFFFFFFF, "Loading...");
-		runner->params.drawEnd();
-		runner->params.drawStart();
-		GUIFontPrint(runner->params.font, runner->params.width / 2, (GUIFontHeight(runner->params.font) + runner->params.height) / 2, GUI_TEXT_CENTER, 0xFFFFFFFF, "Loading...");
+		if (runner->params.guiFinish) {
+			runner->params.guiFinish();
+		}
 		runner->params.drawEnd();
 
 		if (!GBAContextLoadROM(&runner->context, path, true)) {
 			int i;
 			for (i = 0; i < 300; ++i) {
 				runner->params.drawStart();
+				if (runner->params.guiPrepare) {
+					runner->params.guiPrepare();
+				}
 				GUIFontPrint(runner->params.font, runner->params.width / 2, (GUIFontHeight(runner->params.font) + runner->params.height) / 2, GUI_TEXT_CENTER, 0xFFFFFFFF, "Load failed!");
+				if (runner->params.guiFinish) {
+					runner->params.guiFinish();
+				}
 				runner->params.drawEnd();
 			}
 			continue;
 		}
-		if (runner->params.guiFinish) {
-			runner->params.guiFinish();
-		}
-		GBAContextStart(&runner->context);
+		bool running = GBAContextStart(&runner->context);
 		if (runner->gameLoaded) {
 			runner->gameLoaded(runner);
 		}
-
-		bool running = true;
 		while (running) {
 			CircleBufferClear(&runner->fpsBuffer);
 			runner->totalDelta = 0;
@@ -261,7 +262,7 @@ void GBAGUIRunloop(struct GBAGUIRunner* runner) {
 							runner->params.guiPrepare();
 						}
 						GUIFontPrintf(runner->params.font, 0, GUIFontHeight(runner->params.font), GUI_TEXT_LEFT, 0x7FFFFFFF, "%.2f fps", runner->fps);
-						if (runner->params.guiPrepare) {
+						if (runner->params.guiFinish) {
 							runner->params.guiFinish();
 						}
 					}
