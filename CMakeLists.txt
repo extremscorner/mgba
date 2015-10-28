@@ -147,6 +147,9 @@ elseif(UNIX)
 	list(APPEND VFS_SRC ${CMAKE_SOURCE_DIR}/src/util/vfs/vfs-fd.c ${CMAKE_SOURCE_DIR}/src/util/vfs/vfs-dirent.c)
 	file(GLOB OS_SRC ${CMAKE_SOURCE_DIR}/src/platform/posix/*.c)
 	source_group("POSIX-specific code" FILES ${OS_SRC})
+else()
+	add_definitions(-DUSE_VFS_FILE)
+	list(APPEND VFS_SRC ${CMAKE_SOURCE_DIR}/src/util/vfs/vfs-file.c ${CMAKE_SOURCE_DIR}/src/util/vfs/vfs-dirent.c)
 endif()
 
 if(APPLE)
@@ -162,7 +165,6 @@ list(APPEND OS_LIB ${M_LIBRARY})
 if(APPLE OR CMAKE_C_COMPILER_ID STREQUAL "GNU" AND BUILD_LTO)
 	set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -flto")
 	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -flto")
-	set_source_files_properties(${CMAKE_SOURCE_DIR}/src/arm/isa-arm.c ${CMAKE_SOURCE_DIR}/src/arm/isa-thumb.c PROPERTIES COMPILE_FLAGS -fno-lto)
 endif()
 
 if(BUILD_BBB OR BUILD_RASPI OR BUILD_PANDORA)
@@ -467,6 +469,7 @@ set(CORE_SRC
 	${DEBUGGER_SRC}
 	${RENDERER_SRC}
 	${UTIL_SRC}
+	${GUI_SRC}
 	${VFS_SRC}
 	${OS_SRC}
 	${THIRD_PARTY_SRC})

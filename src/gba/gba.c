@@ -42,7 +42,7 @@ static bool _setSoftwareBreakpoint(struct ARMDebugger*, uint32_t address, enum E
 static bool _clearSoftwareBreakpoint(struct ARMDebugger*, uint32_t address, enum ExecutionMode mode, uint32_t opcode);
 
 
-#ifdef _3DS
+#if defined(_3DS) || defined(GEKKO)
 extern uint32_t* romBuffer;
 extern size_t romBufferSize;
 #endif
@@ -115,7 +115,7 @@ void GBAUnloadROM(struct GBA* gba) {
 	gba->memory.rom = 0;
 
 	if (gba->romVf) {
-#ifndef _3DS
+#if !defined(_3DS) && !defined(GEKKO)
 		gba->romVf->unmap(gba->romVf, gba->pristineRom, gba->pristineRomSize);
 #endif
 		gba->pristineRom = 0;
@@ -416,7 +416,7 @@ bool GBALoadMB(struct GBA* gba, struct VFile* vf, const char* fname) {
 	if (gba->pristineRomSize > SIZE_WORKING_RAM) {
 		gba->pristineRomSize = SIZE_WORKING_RAM;
 	}
-#ifdef _3DS
+#if defined(_3DS) || defined(GEKKO)
 	gba->pristineRom = 0;
 	if (gba->pristineRomSize <= romBufferSize) {
 		gba->pristineRom = romBuffer;
@@ -445,7 +445,7 @@ bool GBALoadROM(struct GBA* gba, struct VFile* vf, struct VFile* sav, const char
 	if (gba->pristineRomSize > SIZE_CART0) {
 		gba->pristineRomSize = SIZE_CART0;
 	}
-#ifdef _3DS
+#if defined(_3DS) || defined(GEKKO)
 	gba->pristineRom = 0;
 	if (gba->pristineRomSize <= romBufferSize) {
 		gba->pristineRom = romBuffer;

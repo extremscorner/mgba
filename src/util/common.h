@@ -32,8 +32,6 @@ typedef intptr_t ssize_t;
 #define strncasecmp _strnicmp
 #define ftruncate _chsize
 #define snprintf _snprintf
-#elif defined(__wii__)
-typedef intptr_t ssize_t;
 #else
 #include <strings.h>
 #include <unistd.h>

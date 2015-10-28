@@ -10,11 +10,7 @@
 
 #include "gba/video.h"
 
-#ifdef COLOR_16_BIT
 typedef uint16_t color_t;
-#else
-typedef uint32_t color_t;
-#endif
 
 struct GBAVideoSoftwareSprite {
 	struct GBAObj obj;
@@ -54,15 +50,7 @@ enum BlendEffect {
 };
 
 enum {
-#ifdef COLOR_16_BIT
-#ifdef COLOR_5_6_5
-	GBA_COLOR_WHITE = 0xFFDF,
-#else
 	GBA_COLOR_WHITE = 0x7FFF,
-#endif
-#else
-	GBA_COLOR_WHITE = 0x00F8F8F8,
-#endif
 	OFFSET_PRIORITY = 30,
 	OFFSET_INDEX = 28,
 };

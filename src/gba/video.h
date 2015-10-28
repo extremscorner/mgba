@@ -11,11 +11,7 @@
 #include "gba/memory.h"
 #include "macros.h"
 
-#ifdef COLOR_16_BIT
 #define BYTES_PER_PIXEL 2
-#else
-#define BYTES_PER_PIXEL 4
-#endif
 
 #define GBA_R5(X) ((X) & 0x1F)
 #define GBA_G5(X) (((X) >> 5) & 0x1F)

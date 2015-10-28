@@ -211,90 +211,34 @@ static inline void _compositeNoBlendNoObjwin(struct GBAVideoSoftwareRenderer* re
 static inline unsigned _brighten(unsigned color, int y) {
 	unsigned c = 0;
 	unsigned a;
-#ifdef COLOR_16_BIT
 	a = color & 0x1F;
 	c |= (a + ((0x1F - a) * y) / 16) & 0x1F;
 
-#ifdef COLOR_5_6_5
-	a = color & 0x7C0;
-	c |= (a + ((0x7C0 - a) * y) / 16) & 0x7C0;
-
-	a = color & 0xF800;
-	c |= (a + ((0xF800 - a) * y) / 16) & 0xF800;
-#else
 	a = color & 0x3E0;
 	c |= (a + ((0x3E0 - a) * y) / 16) & 0x3E0;
 
 	a = color & 0x7C00;
 	c |= (a + ((0x7C00 - a) * y) / 16) & 0x7C00;
-#endif
-#else
-	a = color & 0xF8;
-	c |= (a + ((0xF8 - a) * y) / 16) & 0xF8;
-
-	a = color & 0xF800;
-	c |= (a + ((0xF800 - a) * y) / 16) & 0xF800;
-
-	a = color & 0xF80000;
-	c |= (a + ((0xF80000 - a) * y) / 16) & 0xF80000;
-#endif
 	return c;
 }
 
 static inline unsigned _darken(unsigned color, int y) {
 	unsigned c = 0;
 	unsigned a;
-#ifdef COLOR_16_BIT
 	a = color & 0x1F;
 	c |= (a - (a * y) / 16) & 0x1F;
 
-#ifdef COLOR_5_6_5
-	a = color & 0x7C0;
-	c |= (a - (a * y) / 16) & 0x7C0;
-
-	a = color & 0xF800;
-	c |= (a - (a * y) / 16) & 0xF800;
-#else
 	a = color & 0x3E0;
 	c |= (a - (a * y) / 16) & 0x3E0;
 
 	a = color & 0x7C00;
 	c |= (a - (a * y) / 16) & 0x7C00;
-#endif
-#else
-	a = color & 0xF8;
-	c |= (a - (a * y) / 16) & 0xF8;
-
-	a = color & 0xF800;
-	c |= (a - (a * y) / 16) & 0xF800;
-
-	a = color & 0xF80000;
-	c |= (a - (a * y) / 16) & 0xF80000;
-#endif
 	return c;
 }
 
 static unsigned _mix(int weightA, unsigned colorA, int weightB, unsigned colorB) {
 	unsigned c = 0;
 	unsigned a, b;
-#ifdef COLOR_16_BIT
-#ifdef COLOR_5_6_5
-	a = colorA & 0xF81F;
-	b = colorB & 0xF81F;
-	a |= (colorA & 0x7C0) << 16;
-	b |= (colorB & 0x7C0) << 16;
-	c = ((a * weightA + b * weightB) / 16);
-	if (c & 0x08000000) {
-		c = (c & ~0x0FC00000) | 0x07C00000;
-	}
-	if (c & 0x0020) {
-		c = (c & ~0x003F) | 0x001F;
-	}
-	if (c & 0x10000) {
-		c = (c & ~0x1F800) | 0xF800;
-	}
-	c = (c & 0xF81F) | ((c >> 16) & 0x07C0);
-#else
 	a = colorA & 0x7C1F;
 	b = colorB & 0x7C1F;
 	a |= (colorA & 0x3E0) << 16;
@@ -310,29 +254,6 @@ static unsigned _mix(int weightA, unsigned colorA, int weightB, unsigned colorB)
 		c = (c & ~0xF800) | 0x7C00;
 	}
 	c = (c & 0x7C1F) | ((c >> 16) & 0x03E0);
-#endif
-#else
-	a = colorA & 0xF8;
-	b = colorB & 0xF8;
-	c |= ((a * weightA + b * weightB) / 16) & 0x1F8;
-	if (c & 0x00000100) {
-		c = 0x000000F8;
-	}
-
-	a = colorA & 0xF800;
-	b = colorB & 0xF800;
-	c |= ((a * weightA + b * weightB) / 16) & 0x1F800;
-	if (c & 0x00010000) {
-		c = (c & 0x000000F8) | 0x0000F800;
-	}
-
-	a = colorA & 0xF80000;
-	b = colorB & 0xF80000;
-	c |= ((a * weightA + b * weightB) / 16) & 0x1F80000;
-	if (c & 0x01000000) {
-		c = (c & 0x0000F8F8) | 0x00F80000;
-	}
-#endif
 	return c;
 }
 
