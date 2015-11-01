@@ -10,6 +10,13 @@
 
 extern "C" {
 #include "gba/supervisor/thread.h"
+
+#ifdef BUILD_GL
+#include "platform/opengl/gl.h"
+#endif
+#if !defined(_WIN32)
+#include "platform/opengl/gles2.h"
+#endif
 }
 
 using namespace QGBA;
@@ -18,10 +25,10 @@ DisplayGL::DisplayGL(const QGLFormat& format, QWidget* parent)
 	: Display(parent)
 	, m_isDrawing(false)
 	, m_gl(new EmptyGLWidget(format, this))
-	, m_painter(new PainterGL(m_gl))
 	, m_drawThread(nullptr)
 	, m_context(nullptr)
 {
+	m_painter = new PainterGL(m_gl, QGLFormat::openGLVersionFlags());
 	m_gl->setMouseTracking(true);
 	m_gl->setAttribute(Qt::WA_TransparentForMouseEvents); // This doesn't seem to work?
 }
@@ -135,24 +142,39 @@ void DisplayGL::resizePainter() {
 	}
 }
 
-PainterGL::PainterGL(QGLWidget* parent)
+PainterGL::PainterGL(QGLWidget* parent, QGLFormat::OpenGLVersionFlags glVersion)
 	: m_gl(parent)
 	, m_active(false)
 	, m_context(nullptr)
 	, m_messagePainter(nullptr)
 {
 #ifdef BUILD_GL
-	GBAGLContextCreate(&m_backend);
-#elif defined(BUILD_GLES2)
-	GBAGLES2ContextCreate(&m_backend);
+	GBAGLContext* glBackend;
 #endif
-	m_backend.d.swap = [](VideoBackend* v) {
+#ifndef _WIN32
+	GBAGLES2Context* gl2Backend;
+#endif
+
+#ifndef _WIN32
+	if (glVersion & QGLFormat::OpenGL_Version_3_0) {
+		gl2Backend = new GBAGLES2Context;
+		GBAGLES2ContextCreate(gl2Backend);
+		m_backend = &gl2Backend->d;
+	} else {
+#else
+	{
+#endif
+		glBackend = new GBAGLContext;
+		GBAGLContextCreate(glBackend);
+		m_backend = &glBackend->d;
+	}
+	m_backend->swap = [](VideoBackend* v) {
 		PainterGL* painter = static_cast<PainterGL*>(v->user);
 		painter->m_gl->swapBuffers();
 	};
-	m_backend.d.user = this;
-	m_backend.d.filter = false;
-	m_backend.d.lockAspectRatio = false;
+	m_backend->user = this;
+	m_backend->filter = false;
+	m_backend->lockAspectRatio = false;
 
 	for (int i = 0; i < 2; ++i) {
 		m_free.append(new uint32_t[256 * 256]);
@@ -166,6 +188,8 @@ PainterGL::~PainterGL() {
 	for (auto item : m_free) {
 		delete[] item;
 	}
+	delete m_backend;
+	m_backend = nullptr;
 }
 
 void PainterGL::setContext(GBAThread* context) {
@@ -184,14 +208,14 @@ void PainterGL::resize(const QSize& size) {
 }
 
 void PainterGL::lockAspectRatio(bool lock) {
-	m_backend.d.lockAspectRatio = lock;
+	m_backend->lockAspectRatio = lock;
 	if (m_active) {
 		forceDraw();
 	}
 }
 
 void PainterGL::filter(bool filter) {
-	m_backend.d.filter = filter;
+	m_backend->filter = filter;
 	if (m_active) {
 		forceDraw();
 	}
@@ -199,7 +223,7 @@ void PainterGL::filter(bool filter) {
 
 void PainterGL::start() {
 	m_gl->makeCurrent();
-	m_backend.d.init(&m_backend.d, reinterpret_cast<WHandle>(m_gl->winId()));
+	m_backend->init(m_backend, reinterpret_cast<WHandle>(m_gl->winId()));
 	m_gl->doneCurrent();
 	m_active = true;
 }
@@ -214,7 +238,7 @@ void PainterGL::draw() {
 		performDraw();
 		m_painter.end();
 		GBASyncWaitFrameEnd(&m_context->sync);
-		m_backend.d.swap(&m_backend.d);
+		m_backend->swap(m_backend);
 	} else {
 		GBASyncWaitFrameEnd(&m_context->sync);
 	}
@@ -227,16 +251,16 @@ void PainterGL::forceDraw() {
 	m_painter.begin(m_gl->context()->device());
 	performDraw();
 	m_painter.end();
-	m_backend.d.swap(&m_backend.d);
+	m_backend->swap(m_backend);
 }
 
 void PainterGL::stop() {
 	m_active = false;
 	m_gl->makeCurrent();
 	dequeueAll();
-	m_backend.d.clear(&m_backend.d);
-	m_backend.d.swap(&m_backend.d);
-	m_backend.d.deinit(&m_backend.d);
+	m_backend->clear(m_backend);
+	m_backend->swap(m_backend);
+	m_backend->deinit(m_backend);
 	m_gl->doneCurrent();
 	m_gl->context()->moveToThread(m_gl->thread());
 	moveToThread(m_gl->thread());
@@ -253,8 +277,8 @@ void PainterGL::unpause() {
 void PainterGL::performDraw() {
 	m_painter.beginNativePainting();
 	float r = m_gl->devicePixelRatio();
-	m_backend.d.resized(&m_backend.d, m_size.width() * r, m_size.height() * r);
-	m_backend.d.drawFrame(&m_backend.d);
+	m_backend->resized(m_backend, m_size.width() * r, m_size.height() * r);
+	m_backend->drawFrame(m_backend);
 	m_painter.endNativePainting();
 	if (m_messagePainter) {
 		m_messagePainter->paint(&m_painter);
@@ -281,7 +305,7 @@ void PainterGL::dequeue() {
 		return;
 	}
 	uint32_t* buffer = m_queue.dequeue();
-	m_backend.d.postFrame(&m_backend.d, buffer);
+	m_backend->postFrame(m_backend, buffer);
 	m_free.append(buffer);
 	m_mutex.unlock();
 }
@@ -294,7 +318,7 @@ void PainterGL::dequeueAll() {
 		m_free.append(buffer);
 	}
 	if (buffer) {
-		m_backend.d.postFrame(&m_backend.d, buffer);
+		m_backend->postFrame(m_backend, buffer);
 	}
 	m_mutex.unlock();
 }
