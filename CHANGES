@@ -7,11 +7,14 @@ Features:
 Bugfixes:
  - Util: Fix PowerPC PNG read/write pixel order
  - Qt: Use safer isLoaded check in GameController
- - GBA Memory: Fix DMAs from BIOS while not in BIOS
  - GBA: Fix idle skip state being retained between games
  - Qt: Fix a race condition in PainterGL that could lead to a crash
  - Qt: Fix clear button/analog buttons in gamepad mapper on some platforms
  - GBA Video: Fix _mix for 15-bit color
+ - VFS: Fix VFileReadline and remove _vfdReadline
+ - Qt: Fix font size in memory viewer
+ - GBA Memory: Fix DMA register writing behavior
+ - Qt: Fix a crash in the memory viewer
 Misc:
  - Qt: Window size command line options are now supported
  - Qt: Increase usability of key mapper
@@ -26,6 +29,7 @@ Misc:
  - All: Improved PowerPC support
  - All: Fix some undefined behavior warnings
  - GBA Audio: Implement missing flags on SOUNDCNT_X register
+ - Util: Use VFile for configuration
 
 0.3.1: (2015-10-24)
 Bugfixes:

@@ -8,6 +8,10 @@
 
 #include "Display.h"
 
+#ifdef USE_EPOXY
+#include <epoxy/gl.h>
+#endif
+
 #include <QGLWidget>
 #include <QList>
 #include <QMouseEvent>
@@ -17,6 +21,7 @@
 
 struct GBAThread;
 struct VideoBackend;
+struct GBAGLES2Shader;
 
 namespace QGBA {
 
@@ -39,6 +44,7 @@ public:
 	~DisplayGL();
 
 	bool isDrawing() const override { return m_isDrawing; }
+	bool supportsShaders() const override;
 
 public slots:
 	void startDrawing(GBAThread* context) override;
@@ -49,6 +55,7 @@ public slots:
 	void lockAspectRatio(bool lock) override;
 	void filter(bool filter) override;
 	void framePosted(const uint32_t*) override;
+	void setShaders(struct VDir*) override;
 
 protected:
 	virtual void paintEvent(QPaintEvent*) override {}
@@ -75,6 +82,8 @@ public:
 	void setMessagePainter(MessagePainter*);
 	void enqueue(const uint32_t* backing);
 
+	bool supportsShaders() const { return m_supportsShaders; }
+
 public slots:
 	void forceDraw();
 	void draw();
@@ -85,6 +94,8 @@ public slots:
 	void resize(const QSize& size);
 	void lockAspectRatio(bool lock);
 	void filter(bool filter);
+
+	void setShaders(struct VDir*);
 
 private:
 	void performDraw();
@@ -97,7 +108,11 @@ private:
 	QMutex m_mutex;
 	QGLWidget* m_gl;
 	bool m_active;
+	bool m_started;
 	GBAThread* m_context;
+	bool m_supportsShaders;
+	GBAGLES2Shader* m_shaders;
+	size_t m_nShaders;
 	VideoBackend* m_backend;
 	QSize m_size;
 	MessagePainter* m_messagePainter;
