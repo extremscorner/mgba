@@ -568,7 +568,7 @@ uint32_t GBALoad8(struct ARMCore* cpu, uint32_t address, int* cycleCounter) {
 		}
 		break;
 	case REGION_OAM:
-		GBALog(gba, GBA_LOG_STUB, "Unimplemented memory Load8: 0x%08X", address);
+		value = ((uint8_t*) gba->video.oam.raw)[address & (SIZE_OAM - 1)];
 		break;
 	case REGION_CART0:
 	case REGION_CART0_EX:
@@ -590,6 +590,9 @@ uint32_t GBALoad8(struct ARMCore* cpu, uint32_t address, int* cycleCounter) {
 		if (memory->savedata.type == SAVEDATA_AUTODETECT) {
 			GBALog(gba, GBA_LOG_INFO, "Detected SRAM savegame");
 			GBASavedataInitSRAM(&memory->savedata);
+		}
+		if (gba->performingDMA == 1) {
+			break;
 		}
 		if (memory->savedata.type == SAVEDATA_SRAM) {
 			value = memory->savedata.data[address & (SIZE_CART_SRAM - 1)];
@@ -658,7 +661,14 @@ uint32_t GBALoad8(struct ARMCore* cpu, uint32_t address, int* cycleCounter) {
 	GBALog(gba, GBA_LOG_STUB, "Unimplemented memory Store32: 0x%08X", address);
 
 #define STORE_SRAM \
-	GBALog(gba, GBA_LOG_STUB, "Unimplemented memory Store32: 0x%08X", address);
+	if (address & 0x3) { \
+		GBALog(gba, GBA_LOG_GAME_ERROR, "Unaligned SRAM Store32: 0x%08X", address); \
+		value = 0; \
+	} \
+	GBAStore8(cpu, address & ~0x3, value, cycleCounter); \
+	GBAStore8(cpu, (address & ~0x3) | 1, value, cycleCounter); \
+	GBAStore8(cpu, (address & ~0x3) | 2, value, cycleCounter); \
+	GBAStore8(cpu, (address & ~0x3) | 3, value, cycleCounter);
 
 #define STORE_BAD \
 	GBALog(gba, GBA_LOG_GAME_ERROR, "Bad memory Store32: 0x%08X", address);
@@ -764,7 +774,8 @@ void GBAStore16(struct ARMCore* cpu, uint32_t address, int16_t value, int* cycle
 		break;
 	case REGION_CART_SRAM:
 	case REGION_CART_SRAM_MIRROR:
-		GBALog(gba, GBA_LOG_STUB, "Unimplemented memory Store16: 0x%08X", address);
+		GBAStore8(cpu, (address & ~0x1), value, cycleCounter);
+		GBAStore8(cpu, (address & ~0x1) | 1, value, cycleCounter);
 		break;
 	default:
 		GBALog(gba, GBA_LOG_GAME_ERROR, "Bad memory Store16: 0x%08X", address);
@@ -797,10 +808,10 @@ void GBAStore8(struct ARMCore* cpu, uint32_t address, int8_t value, int* cycleCo
 		GBAIOWrite8(gba, address & (SIZE_IO - 1), value);
 		break;
 	case REGION_PALETTE_RAM:
-		GBALog(gba, GBA_LOG_STUB, "Unimplemented memory Store8: 0x%08X", address);
+		GBAStore16(cpu, address & ~1, ((uint8_t) value) | ((uint8_t) value << 8), cycleCounter);
 		break;
 	case REGION_VRAM:
-		if (address >= 0x06018000) {
+		if ((address & 0x0001FFFF) >= 0x00010000) {
 			// TODO: check BG mode
 			GBALog(gba, GBA_LOG_GAME_ERROR, "Cannot Store8 to OBJ: 0x%08X", address);
 			break;
@@ -1100,7 +1111,9 @@ uint32_t GBALoadMultiple(struct ARMCore* cpu, uint32_t address, int mask, enum L
 	}
 
 	uint32_t addressMisalign = address & 0x3;
-	address &= 0xFFFFFFFC;
+	if (address >> BASE_OFFSET < REGION_CART_SRAM) {
+		address &= 0xFFFFFFFC;
+	}
 
 	switch (address >> BASE_OFFSET) {
 	case REGION_BIOS:
@@ -1213,7 +1226,9 @@ uint32_t GBAStoreMultiple(struct ARMCore* cpu, uint32_t address, int mask, enum 
 	}
 
 	uint32_t addressMisalign = address & 0x3;
-	address &= 0xFFFFFFFC;
+	if (address >> BASE_OFFSET < REGION_CART_SRAM) {
+		address &= 0xFFFFFFFC;
+	}
 
 	switch (address >> BASE_OFFSET) {
 	case REGION_WORKING_RAM:
@@ -1311,10 +1326,21 @@ void GBAAdjustWaitstates(struct GBA* gba, uint16_t parameters) {
 	cpu->memory.activeNonseqCycles16 = memory->waitstatesNonseq16[memory->activeRegion];
 }
 
+static bool _isValidDMASAD(int dma, uint32_t address) {
+	if (dma == 0 && address >= BASE_CART0 && address < BASE_CART_SRAM) {
+		return false;
+	}
+	return address >= BASE_WORKING_RAM;
+}
+
+static bool _isValidDMADAD(int dma, uint32_t address) {
+	return dma == 3 || address < BASE_CART0;
+}
+
 uint32_t GBAMemoryWriteDMASAD(struct GBA* gba, int dma, uint32_t address) {
 	struct GBAMemory* memory = &gba->memory;
 	address &= 0x0FFFFFFE;
-	if ((dma > 0 || address < BASE_CART0) && address >= BASE_WORKING_RAM && address < BASE_CART_SRAM) {
+	if (_isValidDMASAD(dma, address)) {
 		memory->dma[dma].source = address;
 	}
 	return memory->dma[dma].source;
@@ -1323,7 +1349,7 @@ uint32_t GBAMemoryWriteDMASAD(struct GBA* gba, int dma, uint32_t address) {
 uint32_t GBAMemoryWriteDMADAD(struct GBA* gba, int dma, uint32_t address) {
 	struct GBAMemory* memory = &gba->memory;
 	address &= 0x0FFFFFFE;
-	if ((dma > 2 || address < BASE_CART0) && address >= BASE_WORKING_RAM && address < BASE_CART_SRAM) {
+	if (_isValidDMADAD(dma, address)) {
 		memory->dma[dma].dest = address;
 	}
 	return memory->dma[dma].dest;
@@ -1480,7 +1506,7 @@ void GBAMemoryServiceDMA(struct GBA* gba, int number, struct GBADMA* info) {
 		}
 	}
 
-	gba->performingDMA = true;
+	gba->performingDMA = 1 | (number << 1);
 	int32_t word;
 	if (width == 4) {
 		word = cpu->memory.load32(cpu, source, 0);
@@ -1517,7 +1543,7 @@ void GBAMemoryServiceDMA(struct GBA* gba, int number, struct GBADMA* info) {
 			--wordsRemaining;
 		}
 	}
-	gba->performingDMA = false;
+	gba->performingDMA = 0;
 
 	if (!wordsRemaining) {
 		if (!GBADMARegisterIsRepeat(info->reg) || GBADMARegisterGetTiming(info->reg) == DMA_TIMING_NOW) {

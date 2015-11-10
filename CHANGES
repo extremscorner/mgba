@@ -17,6 +17,11 @@ Bugfixes:
  - Qt: Fix a crash in the memory viewer
  - GBA BIOS: Fix misaligned CpuSet
  - Libretro: Fix problems with rumble not turning off
+ - ARM7: Fix sign of unaligned LDRSH
+ - GBA BIOS: Fix CpuSet on 0x01XXXXXX addresses
+ - GBA Memory: Fix DMA behavior for SRAM accesses
+ - GBA Memory: Fix Store8 to OBJ VRAM
+ - GBA Memory: Fix alignment of LDM/STM on SRAM
 Misc:
  - Qt: Window size command line options are now supported
  - Qt: Increase usability of key mapper
@@ -32,6 +37,7 @@ Misc:
  - All: Fix some undefined behavior warnings
  - GBA Audio: Implement missing flags on SOUNDCNT_X register
  - Util: Use VFile for configuration
+ - GBA Memory: Implement several unimplemented memory access types
 
 0.3.1: (2015-10-24)
 Bugfixes:
