@@ -151,9 +151,15 @@ uint32_t GBALoad32(struct ARMCore* cpu, uint32_t address, int* cycleCounter);
 uint32_t GBALoad16(struct ARMCore* cpu, uint32_t address, int* cycleCounter);
 uint32_t GBALoad8(struct ARMCore* cpu, uint32_t address, int* cycleCounter);
 
+uint32_t GBALoadBad(struct ARMCore* cpu);
+
 void GBAStore32(struct ARMCore* cpu, uint32_t address, int32_t value, int* cycleCounter);
 void GBAStore16(struct ARMCore* cpu, uint32_t address, int16_t value, int* cycleCounter);
 void GBAStore8(struct ARMCore* cpu, uint32_t address, int8_t value, int* cycleCounter);
+
+uint32_t GBAView32(struct ARMCore* cpu, uint32_t address);
+uint16_t GBAView16(struct ARMCore* cpu, uint32_t address);
+uint8_t GBAView8(struct ARMCore* cpu, uint32_t address);
 
 void GBAPatch32(struct ARMCore* cpu, uint32_t address, int32_t value, int32_t* old);
 void GBAPatch16(struct ARMCore* cpu, uint32_t address, int16_t value, int16_t* old);

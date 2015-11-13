@@ -103,6 +103,9 @@ static void GBAInit(struct ARMCore* cpu, struct ARMComponent* component) {
 	gba->hardCrash = true;
 
 	gba->performingDMA = false;
+
+	gba->pristineRom = 0;
+	gba->pristineRomSize = 0;
 }
 
 void GBAUnloadROM(struct GBA* gba) {
@@ -722,6 +725,9 @@ bool GBAIsROM(struct VFile* vf) {
 
 bool GBAIsMB(struct VFile* vf) {
 	if (!GBAIsROM(vf)) {
+		return false;
+	}
+	if (vf->size(vf) > SIZE_WORKING_RAM) {
 		return false;
 	}
 	if (vf->seek(vf, GBA_MB_MAGIC_OFFSET, SEEK_SET) < 0) {
