@@ -7,9 +7,9 @@
 
 #include "GameController.h"
 
+#include <QComboBox>
 #include <QFontDatabase>
 #include <QGridLayout>
-#include <QRadioButton>
 #include <QSpinBox>
 
 extern "C" {
@@ -726,6 +726,300 @@ const QList<IOViewer::RegisterDescription>& IOViewer::registerDescriptions() {
 		{ tr("IRQ"), 14 },
 		{ tr("Enable"), 15 },
 	});
+	// 0x040000E0: Unused
+	s_registers.append(RegisterDescription());
+	// 0x040000E2: Unused
+	s_registers.append(RegisterDescription());
+	// 0x040000E4: Unused
+	s_registers.append(RegisterDescription());
+	// 0x040000E6: Unused
+	s_registers.append(RegisterDescription());
+	// 0x040000E8: Unused
+	s_registers.append(RegisterDescription());
+	// 0x040000EA: Unused
+	s_registers.append(RegisterDescription());
+	// 0x040000EC: Unused
+	s_registers.append(RegisterDescription());
+	// 0x040000EE: Unused
+	s_registers.append(RegisterDescription());
+	// 0x040000F0: Unused
+	s_registers.append(RegisterDescription());
+	// 0x040000F2: Unused
+	s_registers.append(RegisterDescription());
+	// 0x040000F4: Unused
+	s_registers.append(RegisterDescription());
+	// 0x040000F6: Unused
+	s_registers.append(RegisterDescription());
+	// 0x040000F8: Unused
+	s_registers.append(RegisterDescription());
+	// 0x040000FA: Unused
+	s_registers.append(RegisterDescription());
+	// 0x040000FC: Unused
+	s_registers.append(RegisterDescription());
+	// 0x040000FE: Unused
+	s_registers.append(RegisterDescription());
+	// 0x04000100: TM0CNT_LO
+	s_registers.append({
+		{ tr("Value"), 0, 16 },
+	});
+	// 0x04000102: TM0CNT_HI
+	s_registers.append({
+		{ tr("Scale"), 0, 2, {
+			tr("1"),
+			tr("1/64"),
+			tr("1/256"),
+			tr("1/1024"),
+		} },
+		{ tr("IRQ"), 6 },
+		{ tr("Enable"), 7 },
+	});
+	// 0x04000104: TM1CNT_LO
+	s_registers.append({
+		{ tr("Value"), 0, 16 },
+	});
+	// 0x04000106: TM1CNT_HI
+	s_registers.append({
+		{ tr("Scale"), 0, 2, {
+			tr("1"),
+			tr("1/64"),
+			tr("1/256"),
+			tr("1/1024"),
+		} },
+		{ tr("Cascade"), 2 },
+		{ tr("IRQ"), 6 },
+		{ tr("Enable"), 7 },
+	});
+	// 0x04000108: TM2CNT_LO
+	s_registers.append({
+		{ tr("Value"), 0, 16 },
+	});
+	// 0x0400010A: TM2CNT_HI
+	s_registers.append({
+		{ tr("Scale"), 0, 2, {
+			tr("1"),
+			tr("1/64"),
+			tr("1/256"),
+			tr("1/1024"),
+		} },
+		{ tr("Cascade"), 2 },
+		{ tr("IRQ"), 6 },
+		{ tr("Enable"), 7 },
+	});
+	// 0x0400010C: TM3CNT_LO
+	s_registers.append({
+		{ tr("Value"), 0, 16 },
+	});
+	// 0x0400010E: TM3CNT_HI
+	s_registers.append({
+		{ tr("Scale"), 0, 2, {
+			tr("1"),
+			tr("1/64"),
+			tr("1/256"),
+			tr("1/1024"),
+		} },
+		{ tr("Cascade"), 2 },
+		{ tr("IRQ"), 6 },
+		{ tr("Enable"), 7 },
+	});
+	// 0x04000110: Unused
+	s_registers.append(RegisterDescription());
+	// 0x04000112: Unused
+	s_registers.append(RegisterDescription());
+	// 0x04000114: Unused
+	s_registers.append(RegisterDescription());
+	// 0x04000116: Unused
+	s_registers.append(RegisterDescription());
+	// 0x04000118: Unused
+	s_registers.append(RegisterDescription());
+	// 0x0400011A: Unused
+	s_registers.append(RegisterDescription());
+	// 0x0400011C: Unused
+	s_registers.append(RegisterDescription());
+	// 0x0400011E: Unused
+	s_registers.append(RegisterDescription());
+	// 0x04000120: SIOMULTI0
+	s_registers.append(RegisterDescription());
+	// 0x04000122: SIOMULTI1
+	s_registers.append(RegisterDescription());
+	// 0x04000124: SIOMULTI2
+	s_registers.append(RegisterDescription());
+	// 0x04000126: SIOMULTI3
+	s_registers.append(RegisterDescription());
+	// 0x04000128: SIOCNT
+	s_registers.append(RegisterDescription());
+	// 0x0400012A: SIOMLT_SEND
+	s_registers.append(RegisterDescription());
+	// 0x0400012C: Unused
+	s_registers.append(RegisterDescription());
+	// 0x0400012E: Unused
+	s_registers.append(RegisterDescription());
+	// 0x04000130: KEYINPUT
+	s_registers.append({
+		{ tr("A"), 0 },
+		{ tr("B"), 1 },
+		{ tr("Select"), 2 },
+		{ tr("Start"), 3 },
+		{ tr("Right"), 4 },
+		{ tr("Left"), 5 },
+		{ tr("Up"), 6 },
+		{ tr("Down"), 7 },
+		{ tr("R"), 8 },
+		{ tr("L"), 9 },
+	});
+	// 0x04000132: KEYCNT
+	s_registers.append({
+		{ tr("A"), 0 },
+		{ tr("B"), 1 },
+		{ tr("Select"), 2 },
+		{ tr("Start"), 3 },
+		{ tr("Right"), 4 },
+		{ tr("Left"), 5 },
+		{ tr("Up"), 6 },
+		{ tr("Down"), 7 },
+		{ tr("R"), 8 },
+		{ tr("L"), 9 },
+		{ tr("IRQ"), 14 },
+		{ tr("Condition"), 15 },
+	});
+	// 0x04000134: RCNT
+	s_registers.append({
+		{ tr("SC"), 0 },
+		{ tr("SD"), 1 },
+		{ tr("SI"), 2 },
+		{ tr("SO"), 3 },
+	});
+	// 0x04000136: Unused
+	s_registers.append(RegisterDescription());
+	// 0x04000138: SIOCNT
+	s_registers.append(RegisterDescription());
+	// 0x0400013A: Unused
+	s_registers.append(RegisterDescription());
+	// 0x0400013C: Unused
+	s_registers.append(RegisterDescription());
+	// 0x0400013E: Unused
+	s_registers.append(RegisterDescription());
+	// 0x04000140: JOYCNT
+	s_registers.append(RegisterDescription());
+	// 0x04000142: Unused
+	s_registers.append(RegisterDescription());
+	// 0x04000144: Unused
+	s_registers.append(RegisterDescription());
+	// 0x04000146: Unused
+	s_registers.append(RegisterDescription());
+	// 0x04000148: Unused
+	s_registers.append(RegisterDescription());
+	// 0x0400014A: Unused
+	s_registers.append(RegisterDescription());
+	// 0x0400014C: Unused
+	s_registers.append(RegisterDescription());
+	// 0x0400014E: Unused
+	s_registers.append(RegisterDescription());
+	// 0x04000150: JOY_RECV_LO
+	s_registers.append(RegisterDescription());
+	// 0x04000152: JOY_RECV_HI
+	s_registers.append(RegisterDescription());
+	// 0x04000154: JOY_TRANS_LO
+	s_registers.append(RegisterDescription());
+	// 0x04000156: JOY_TRANS_HI
+	s_registers.append(RegisterDescription());
+	// 0x04000158: JOYSTAT
+	s_registers.append(RegisterDescription());
+	// 0x0400015A: Unused
+	s_registers.append(RegisterDescription());
+	// 0x0400015C: Unused
+	s_registers.append(RegisterDescription());
+	// 0x0400015E: Unused
+	s_registers.append(RegisterDescription());
+	for (int i = 0x160; i < 0x200; i += 2) {
+		// Unused
+		s_registers.append(RegisterDescription());
+	}
+	// 0x04000200: IE
+	s_registers.append({
+		{ tr("VBlank"), 0 },
+		{ tr("HBlank"), 1 },
+		{ tr("VCounter"), 2 },
+		{ tr("Timer 0"), 3 },
+		{ tr("Timer 1"), 4 },
+		{ tr("Timer 2"), 5 },
+		{ tr("Timer 3"), 6 },
+		{ tr("SIO"), 7 },
+		{ tr("DMA 0"), 8 },
+		{ tr("DMA 1"), 9 },
+		{ tr("DMA 2"), 10 },
+		{ tr("DMA 3"), 11 },
+		{ tr("Keypad"), 12 },
+		{ tr("Gamepak"), 13 },
+	});
+	// 0x04000202: IF
+	s_registers.append({
+		{ tr("VBlank"), 0 },
+		{ tr("HBlank"), 1 },
+		{ tr("VCounter"), 2 },
+		{ tr("Timer 0"), 3 },
+		{ tr("Timer 1"), 4 },
+		{ tr("Timer 2"), 5 },
+		{ tr("Timer 3"), 6 },
+		{ tr("SIO"), 7 },
+		{ tr("DMA 0"), 8 },
+		{ tr("DMA 1"), 9 },
+		{ tr("DMA 2"), 10 },
+		{ tr("DMA 3"), 11 },
+		{ tr("Keypad"), 12 },
+		{ tr("Gamepak"), 13 },
+	});
+	// 0x04000204: WAITCNT
+	s_registers.append({
+		{ tr("SRAM wait"), 0, 2, {
+			tr("4"),
+			tr("3"),
+			tr("2"),
+			tr("8"),
+		} },
+		{ tr("Cart 0 non-sequential"), 2, 2, {
+			tr("4"),
+			tr("3"),
+			tr("2"),
+			tr("8"),
+		} },
+		{ tr("Cart 0 sequential"), 4, 1, {
+			tr("2"),
+			tr("1"),
+		} },
+		{ tr("Cart 1 non-sequential"), 5, 2, {
+			tr("4"),
+			tr("3"),
+			tr("2"),
+			tr("8"),
+		} },
+		{ tr("Cart 1 sequential"), 7, 1, {
+			tr("4"),
+			tr("1"),
+		} },
+		{ tr("Cart 2 non-sequential"), 8, 2, {
+			tr("4"),
+			tr("3"),
+			tr("2"),
+			tr("8"),
+		} },
+		{ tr("Cart 2 sequential"), 10, 1, {
+			tr("8"),
+			tr("1"),
+		} },
+		{ tr("PHI terminal"), 11, 2, {
+			tr("Disable"),
+			tr("4.19MHz"),
+			tr("8.38MHz"),
+			tr("16.78MHz"),
+		} },
+		{ tr("Gamepak prefetch"), 14 },
+	});
+	// 0x04000206: Unused
+	s_registers.append(RegisterDescription());
+	// 0x04000208: IME
+	s_registers.append({
+		{ tr("Enable IRQs"), 0 },
+	});
 	return s_registers;
 }
 
@@ -840,7 +1134,17 @@ void IOViewer::selectRegister(unsigned address) {
 				QSpinBox* sbox = new QSpinBox;
 				sbox->setEnabled(!ri.readonly);
 				sbox->setMaximum((1 << ri.size) - 1);
+				sbox->setAccelerated(true);
 				box->addWidget(sbox, i, 1, Qt::AlignRight);
+
+				connect(sbox, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), [sbox, this, &ri](int v) {
+					for (int o = 0; o < ri.size; ++o) {
+						bool signalsBlocked = m_b[o + ri.start]->blockSignals(true);
+						m_b[o + ri.start]->setChecked(v & (1 << o));
+						m_b[o + ri.start]->blockSignals(signalsBlocked);
+					}
+				});
+
 				auto connection = connect(this, &IOViewer::valueChanged, [sbox, &ri, this]() {
 					int v = (m_value >> ri.start) & ((1 << ri.size) - 1);
 					bool signalsBlocked = sbox->blockSignals(true);
@@ -851,32 +1155,35 @@ void IOViewer::selectRegister(unsigned address) {
 					this->disconnect(connection);
 				});
 			} else {
-				QButtonGroup* group = new QButtonGroup(box);
-				group->setExclusive(true);
+				QComboBox* cbox = new QComboBox;
+				cbox->setEnabled(!ri.readonly);
+				++i;
+				box->addWidget(cbox, i, 0, 1, 2, Qt::AlignRight);
 				for (int o = 0; o < 1 << ri.size; ++o) {
 					if (ri.items.at(o).isNull()) {
 						continue;
 					}
-					++i;
-					QRadioButton* button = new QRadioButton(ri.items.at(o));
-					button->setEnabled(!ri.readonly);
-					box->addWidget(button, i, 0, 1, 2, Qt::AlignLeft);
-					group->addButton(button, o);
+					cbox->addItem(ri.items.at(o), o);
 				}
 
-				auto connection = connect(this, &IOViewer::valueChanged, [group, this, &ri]() {
-					unsigned v = (m_value >> ri.start) & ((1 << ri.size) - 1);
-					for (int i = 0; i < 1 << ri.size; ++i) {
-						QAbstractButton* button = group->button(i);
-						if (!button) {
-							continue;
-						}
-						bool signalsBlocked = button->blockSignals(true);
-						button->setChecked(i == v);
-						button->blockSignals(signalsBlocked);
+				connect(cbox, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [cbox, this, &ri](int index) {
+					unsigned v = cbox->itemData(index).toUInt();
+					for (int o = 0; o < ri.size; ++o) {
+						bool signalsBlocked = m_b[o + ri.start]->blockSignals(true);
+						m_b[o + ri.start]->setChecked(v & (1 << o));
+						m_b[o + ri.start]->blockSignals(signalsBlocked);
 					}
 				});
-				connect(group, &QObject::destroyed, [connection, this]() {
+
+				auto connection = connect(this, &IOViewer::valueChanged, [cbox, this, &ri]() {
+					unsigned v = (m_value >> ri.start) & ((1 << ri.size) - 1);
+					for (int i = 0; i < 1 << ri.size; ++i) {
+						if (cbox->itemData(i) == v) {
+							cbox->setCurrentIndex(i);
+						}
+					}
+				});
+				connect(cbox, &QObject::destroyed, [connection, this]() {
 					this->disconnect(connection);
 				});
 
