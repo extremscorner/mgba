@@ -5,6 +5,7 @@ Features:
  - Booting of multiboot images
  - Customization of GIF recording
  - Libretro: Cheat code support
+ - Support for GLSL shaders
 Bugfixes:
  - Util: Fix PowerPC PNG read/write pixel order
  - Qt: Use safer isLoaded check in GameController
@@ -32,6 +33,11 @@ Bugfixes:
  - GBA BIOS: Fix Sqrt sign
  - GBA BIOS: Fix misaligned RLUnCompReadNormalWrite*
  - Qt: Fix race condition with setting sample rate
+ - GBA Memory: Fix timing of DMAs
+ - GBA Memory: Fix DMAs triggering two cycles early
+ - ARM7: Fix STRT/STRBT
+ - ARM7: Implement undefined STRH/LDRH/LDRSH/LDRSB versions
+ - ARM7: Fix bank switching with LDR[B]T/STR[B]T
 Misc:
  - Qt: Window size command line options are now supported
  - Qt: Increase usability of key mapper
@@ -51,6 +57,7 @@ Misc:
  - GBA: Implement bad I/O register loading
  - GBA Memory: Add GBAView* functions for viewing memory directly without bus issues
  - Util: Add MutexTryLock
+ - Qt: Gray out "Skip BIOS intro" while "Use BIOS file" is unchecked
 
 0.3.1: (2015-10-24)
 Bugfixes:
