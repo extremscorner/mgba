@@ -32,6 +32,7 @@ if(NOT WIN32 OR NOT BUILD_SDL)
 	find_package(Qt5Multimedia)
 endif()
 find_package(Qt5OpenGL)
+find_package(Qt5Network)
 find_package(Qt5Widgets)
 
 if(NOT BUILD_GL AND NOT BUILD_GLES2)
@@ -40,7 +41,7 @@ if(NOT BUILD_GL AND NOT BUILD_GLES2)
 	return()
 endif()
 
-if(NOT Qt5OpenGL_FOUND OR NOT Qt5Widgets_FOUND)
+if(NOT Qt5OpenGL_FOUND OR NOT Qt5Widgets_FOUND OR NOT Qt5Network_FOUND)
 	message(WARNING "Cannot find Qt modules")
 	set(BUILD_QT OFF PARENT_SCOPE)
 	return()
@@ -69,6 +70,7 @@ set(SOURCE_FILES
 	CheatsModel.cpp
 	CheatsView.cpp
 	ConfigController.cpp
+	DatDownloadView.cpp
 	Display.cpp
 	DisplayGL.cpp
 	DisplayQt.cpp
@@ -91,6 +93,7 @@ set(SOURCE_FILES
 	MultiplayerController.cpp
 	OverrideView.cpp
 	PaletteView.cpp
+	ROMInfo.cpp
 	SavestateButton.cpp
 	SensorView.cpp
 	SettingsView.cpp
@@ -105,6 +108,7 @@ set(SOURCE_FILES
 qt5_wrap_ui(UI_FILES
 	AboutScreen.ui
 	CheatsView.ui
+	DatDownloadView.ui
 	GIFView.ui
 	IOViewer.ui
 	LoadSaveState.ui
@@ -112,6 +116,7 @@ qt5_wrap_ui(UI_FILES
 	MemoryView.ui
 	OverrideView.ui
 	PaletteView.ui
+	ROMInfo.ui
 	SensorView.ui
 	SettingsView.ui
 	ShaderSelector.ui
@@ -119,7 +124,7 @@ qt5_wrap_ui(UI_FILES
 	VideoView.ui)
 
 set(QT_LIBRARIES)
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS},libqt5widgets5,libqt5opengl5")
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS},libqt5widgets5,libqt5opengl5,libqt5network5")
 
 set(AUDIO_SRC)
 if(BUILD_SDL)
@@ -175,7 +180,7 @@ endif()
 add_executable(${BINARY_NAME}-qt WIN32 MACOSX_BUNDLE main.cpp ${CMAKE_SOURCE_DIR}/res/mgba.icns ${SOURCE_FILES} ${PLATFORM_SRC} ${UI_FILES} ${AUDIO_SRC} ${RESOURCES})
 set_target_properties(${BINARY_NAME}-qt PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/res/info.plist.in COMPILE_DEFINITIONS "${FEATURE_DEFINES};${FUNCTION_DEFINES};${OS_DEFINES};${QT_DEFINES}")
 
-list(APPEND QT_LIBRARIES Qt5::Widgets Qt5::OpenGL)
+list(APPEND QT_LIBRARIES Qt5::Widgets Qt5::OpenGL Qt5::Network)
 target_link_libraries(${BINARY_NAME}-qt ${PLATFORM_LIBRARY} ${BINARY_NAME} ${QT_LIBRARIES} ${OPENGL_LIBRARY} ${OPENGLES2_LIBRARY})
 set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}" PARENT_SCOPE)
 

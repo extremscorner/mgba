@@ -17,6 +17,7 @@
 #include "AboutScreen.h"
 #include "CheatsView.h"
 #include "ConfigController.h"
+#include "DatDownloadView.h"
 #include "Display.h"
 #include "GameController.h"
 #include "GBAApp.h"
@@ -31,6 +32,7 @@
 #include "MemoryView.h"
 #include "OverrideView.h"
 #include "PaletteView.h"
+#include "ROMInfo.h"
 #include "SensorView.h"
 #include "SettingsView.h"
 #include "ShaderSelector.h"
@@ -40,6 +42,7 @@
 
 extern "C" {
 #include "platform/commandline.h"
+#include "util/nointro.h"
 #include "util/vfs.h"
 }
 
@@ -82,6 +85,7 @@ Window::Window(ConfigController* config, int playerId, QWidget* parent)
 	updateTitle();
 
 	m_display = Display::create(this);
+	m_shaderView = new ShaderSelector(m_display, m_config);
 
 	m_logo.setDevicePixelRatio(m_screenWidget->devicePixelRatio());
 	m_logo = m_logo; // Free memory left over in old pixmap
@@ -134,6 +138,7 @@ Window::Window(ConfigController* config, int playerId, QWidget* parent)
 	connect(this, SIGNAL(shutdown()), m_display, SLOT(stopDrawing()));
 	connect(this, SIGNAL(shutdown()), m_controller, SLOT(closeGame()));
 	connect(this, SIGNAL(shutdown()), m_logView, SLOT(hide()));
+	connect(this, SIGNAL(shutdown()), m_shaderView, SLOT(hide()));
 	connect(this, SIGNAL(audioBufferSamplesChanged(int)), m_controller, SLOT(setAudioBufferSamples(int)));
 	connect(this, SIGNAL(sampleRateChanged(unsigned)), m_controller, SLOT(setAudioSampleRate(unsigned)));
 	connect(this, SIGNAL(fpsTargetChanged(float)), m_controller, SLOT(setFPSTarget(float)));
@@ -229,6 +234,7 @@ void Window::loadConfig() {
 		struct VDir* shader = VDirOpen(opts->shader);
 		if (shader) {
 			m_display->setShaders(shader);
+			m_shaderView->refreshShaders();
 			shader->close(shader);
 		}
 	}
@@ -255,6 +261,7 @@ void Window::selectROM() {
 #ifdef USE_LZMA
 		"*.7z",
 #endif
+		"*.agb",
 		"*.mb",
 		"*.rom",
 		"*.bin"};
@@ -396,9 +403,15 @@ void Window::openAboutScreen() {
 	openView(about);
 }
 
-void Window::openShaderWindow() {
-	ShaderSelector* shaderView = new ShaderSelector(m_display);
-	openView(shaderView);
+void Window::openROMInfo() {
+	ROMInfo* romInfo = new ROMInfo(m_controller);
+	openView(romInfo);
+}
+
+void Window::openDatDownloadWindow() {
+	DatDownloadView* datView = new DatDownloadView();
+	datView->show();
+	datView->start();
 }
 
 #ifdef BUILD_SDL
@@ -599,7 +612,6 @@ void Window::gameStarted(GBAThread* context) {
 	MutexLock(&context->stateMutex);
 	if (context->state < THREAD_EXITING) {
 		emit startDrawing(context);
-		GBAGetGameTitle(context->gba, title);
 	} else {
 		MutexUnlock(&context->stateMutex);
 		return;
@@ -710,10 +722,15 @@ void Window::updateTitle(float fps) {
 
 	m_controller->threadInterrupt();
 	if (m_controller->isLoaded()) {
-		char gameTitle[13] = { '\0' };
-		GBAGetGameTitle(m_controller->thread()->gba, gameTitle);
-
-		title = (gameTitle);
+		const NoIntroDB* db = GBAApp::app()->gameDB();
+		NoIntroGame game;
+		if (db && NoIntroDBLookupGameByCRC(db, m_controller->thread()->gba->romCrc32, &game)) {
+			title = QLatin1String(game.name);
+		} else {
+			char gameTitle[13] = { '\0' };
+			GBAGetGameTitle(m_controller->thread()->gba, gameTitle);
+			title = gameTitle;
+		}
 	}
 	MultiplayerController* multiplayer = m_controller->multiplayerController();
 	if (multiplayer && multiplayer->attached() > 1) {
@@ -767,6 +784,11 @@ void Window::setupMenu(QMenuBar* menubar) {
 	addControlledAction(fileMenu, fileMenu->addAction(tr("Boot BIOS"), m_controller, SLOT(bootBIOS())), "bootBIOS");
 
 	addControlledAction(fileMenu, fileMenu->addAction(tr("Replace ROM..."), this, SLOT(replaceROM())), "replaceROM");
+
+	QAction* romInfo = new QAction(tr("ROM &info..."), fileMenu);
+	connect(romInfo, SIGNAL(triggered()), this, SLOT(openROMInfo()));
+	m_gameActions.append(romInfo);
+	addControlledAction(fileMenu, romInfo, "romInfo");
 
 	m_mruMenu = fileMenu->addMenu(tr("Recent"));
 
@@ -1055,7 +1077,7 @@ void Window::setupMenu(QMenuBar* menubar) {
 	m_config->updateOption("frameskip");
 
 	QAction* shaderView = new QAction(tr("Shader options..."), avMenu);
-	connect(shaderView, SIGNAL(triggered()), this, SLOT(openShaderWindow()));
+	connect(shaderView, SIGNAL(triggered()), m_shaderView, SLOT(show()));
 	if (!m_display->supportsShaders()) {
 		shaderView->setEnabled(false);
 	}
@@ -1171,6 +1193,10 @@ void Window::setupMenu(QMenuBar* menubar) {
 	connect(gdbWindow, SIGNAL(triggered()), this, SLOT(gdbOpen()));
 	addControlledAction(toolsMenu, gdbWindow, "gdbWindow");
 #endif
+
+	QAction* updateDat = new QAction(tr("Update game database..."), toolsMenu);
+	connect(updateDat, SIGNAL(triggered()), this, SLOT(openDatDownloadWindow()));
+	addControlledAction(toolsMenu, updateDat, "updateDat");
 
 	toolsMenu->addSeparator();
 	addControlledAction(toolsMenu, toolsMenu->addAction(tr("Settings..."), this, SLOT(openSettingsWindow())),

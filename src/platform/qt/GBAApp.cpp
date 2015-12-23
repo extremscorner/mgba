@@ -9,6 +9,7 @@
 #include "Display.h"
 #include "GameController.h"
 #include "Window.h"
+#include "VFileDevice.h"
 
 #include <QFileInfo>
 #include <QFileOpenEvent>
@@ -17,6 +18,7 @@
 extern "C" {
 #include "gba/supervisor/thread.h"
 #include "platform/commandline.h"
+#include "util/nointro.h"
 #include "util/socket.h"
 }
 
@@ -27,6 +29,7 @@ static GBAApp* g_app = nullptr;
 GBAApp::GBAApp(int& argc, char* argv[])
 	: QApplication(argc, argv)
 	, m_windows{}
+	, m_db(nullptr)
 {
 	g_app = this;
 
@@ -59,6 +62,8 @@ GBAApp::GBAApp(int& argc, char* argv[])
 		::exit(0);
 		return;
 	}
+
+	reloadGameDB();
 
 	if (!m_configController.getQtOption("audioDriver").isNull()) {
 		AudioProcessor::setDriver(static_cast<AudioProcessor::Driver>(m_configController.getQtOption("audioDriver").toInt()));
@@ -167,6 +172,21 @@ QFileDialog* GBAApp::getSaveFileDialog(QWidget* owner, const QString& title, con
 	FileDialog* dialog = new FileDialog(this, owner, title, filter);
 	dialog->setAcceptMode(QFileDialog::AcceptSave);
 	return dialog;
+}
+
+bool GBAApp::reloadGameDB() {
+	NoIntroDB* db = nullptr;
+	char path[PATH_MAX];
+	GBAConfigDirectory(path, sizeof(path));
+	VFile* vf = VFileDevice::open(QString::fromUtf8(path) + "/nointro.dat", O_RDONLY);
+	if (vf) {
+		db = NoIntroDBLoad(vf);
+		vf->close(vf);
+	}
+	if (db && m_db) {
+		NoIntroDBDestroy(m_db);
+	}
+	m_db = db;
 }
 
 GBAApp::FileDialog::FileDialog(GBAApp* app, QWidget* parent, const QString& caption, const QString& filter)

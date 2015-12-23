@@ -32,6 +32,7 @@ class Display;
 class GameController;
 class GIFView;
 class LogView;
+class ShaderSelector;
 class ShortcutController;
 class VideoView;
 class WindowBackground;
@@ -87,8 +88,8 @@ public slots:
 	void openIOViewer();
 
 	void openAboutScreen();
-
-	void openShaderWindow();
+	void openROMInfo();
+	void openDatDownloadWindow();
 
 #ifdef BUILD_SDL
 	void openGamepadWindow();
@@ -168,6 +169,7 @@ private:
 	QList<QString> m_mruFiles;
 	QMenu* m_mruMenu;
 	ShortcutController* m_shortcutController;
+	ShaderSelector* m_shaderView;
 	int m_playerId;
 	bool m_fullscreenOnStart;
 

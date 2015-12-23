@@ -34,6 +34,11 @@ struct VDirDE {
 };
 
 struct VDir* VDirOpen(const char* path) {
+#ifdef USE_VFS_FILE
+	if (!path || !path[0]) {
+		return VDeviceList();
+	}
+#endif
 	DIR* de = opendir(path);
 	if (!de) {
 		return 0;
