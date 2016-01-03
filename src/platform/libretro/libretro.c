@@ -19,6 +19,7 @@
 #define RUMBLE_PWM 35
 
 #define SOLAR_SENSOR_LEVEL "mgba_solar_sensor_level"
+#define ALLOW_OPPOSING_DIRECTIONS "mgba_allow_opposing_directions"
 
 static retro_environment_t environCallback;
 static retro_video_refresh_t videoCallback;
@@ -58,6 +59,7 @@ void retro_set_environment(retro_environment_t env) {
 
 	struct retro_variable vars[] = {
 		{ SOLAR_SENSOR_LEVEL, "Solar sensor level; 0|1|2|3|4|5|6|7|8|9|10" },
+		{ ALLOW_OPPOSING_DIRECTIONS, "Allow opposing directional input; no|yes" },
 		{ 0, 0 }
 	};
 
@@ -97,6 +99,7 @@ void retro_get_system_av_info(struct retro_system_av_info* info) {
    info->geometry.base_height = VIDEO_VERTICAL_PIXELS;
    info->geometry.max_width = VIDEO_HORIZONTAL_PIXELS;
    info->geometry.max_height = VIDEO_VERTICAL_PIXELS;
+   info->geometry.aspect_ratio = 3.0 / 2.0;
    info->timing.fps =  GBA_ARM7TDMI_FREQUENCY / (float) VIDEO_TOTAL_LENGTH;
    info->timing.sample_rate = 32768;
 }
@@ -211,6 +214,18 @@ void retro_deinit(void) {
 void retro_run(void) {
 	uint16_t keys;
 	inputPollCallback();
+
+	struct retro_variable var = {
+		.key = ALLOW_OPPOSING_DIRECTIONS,
+		.value = 0
+	};
+
+	bool updated = false;
+	if (environCallback(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
+		if (environCallback(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value) {
+			context.gba->allowOpposingDirections = strcmp(var.value, "yes") == 0;
+		}
+	}
 
 	keys = 0;
 	keys |= (!!inputCallback(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A)) << 0;

@@ -132,6 +132,7 @@ void GBAConfigDeinit(struct GBAConfig* config) {
 	free(config->port);
 }
 
+#if !defined(MINIMAL_CORE) || MINIMAL_CORE < 2
 bool GBAConfigLoad(struct GBAConfig* config) {
 	char path[PATH_MAX];
 	GBAConfigDirectory(path, PATH_MAX);
@@ -212,8 +213,9 @@ void GBAConfigDirectory(char* out, size_t outLength) {
 	snprintf(out, outLength, "/%s", projectName);
 	mkdir(out, 0777);
 #elif defined(_3DS)
+	UNUSED(portable);
 	snprintf(out, outLength, "/%s", projectName);
-	FSUSER_CreateDirectory(0, sdmcArchive, FS_makePath(PATH_CHAR, out));
+	FSUSER_CreateDirectory(sdmcArchive, fsMakePath(PATH_ASCII, out), 0);
 #else
 	getcwd(out, outLength);
 	strncat(out, PATH_SEP "portable.ini", outLength - strlen(out));
@@ -231,6 +233,7 @@ void GBAConfigDirectory(char* out, size_t outLength) {
 	mkdir(out, 0755);
 #endif
 }
+#endif
 
 const char* GBAConfigGetValue(const struct GBAConfig* config, const char* key) {
 	return _lookupValue(config, key);

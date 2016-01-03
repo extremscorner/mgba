@@ -17,7 +17,6 @@
 #include "AboutScreen.h"
 #include "CheatsView.h"
 #include "ConfigController.h"
-#include "DatDownloadView.h"
 #include "Display.h"
 #include "GameController.h"
 #include "GBAApp.h"
@@ -406,12 +405,6 @@ void Window::openAboutScreen() {
 void Window::openROMInfo() {
 	ROMInfo* romInfo = new ROMInfo(m_controller);
 	openView(romInfo);
-}
-
-void Window::openDatDownloadWindow() {
-	DatDownloadView* datView = new DatDownloadView();
-	datView->show();
-	datView->start();
 }
 
 #ifdef BUILD_SDL
@@ -1194,10 +1187,6 @@ void Window::setupMenu(QMenuBar* menubar) {
 	addControlledAction(toolsMenu, gdbWindow, "gdbWindow");
 #endif
 
-	QAction* updateDat = new QAction(tr("Update game database..."), toolsMenu);
-	connect(updateDat, SIGNAL(triggered()), this, SLOT(openDatDownloadWindow()));
-	addControlledAction(toolsMenu, updateDat, "updateDat");
-
 	toolsMenu->addSeparator();
 	addControlledAction(toolsMenu, toolsMenu->addAction(tr("Settings..."), this, SLOT(openSettingsWindow())),
 	                    "settings");
@@ -1280,6 +1269,69 @@ void Window::setupMenu(QMenuBar* menubar) {
 	connect(exitFullScreen, SIGNAL(triggered()), this, SLOT(exitFullScreen()));
 	exitFullScreen->setShortcut(QKeySequence("Esc"));
 	addHiddenAction(frameMenu, exitFullScreen, "exitFullScreen");
+
+	QMenu* autofireMenu = new QMenu(tr("Autofire"), this);
+	m_shortcutController->addMenu(autofireMenu);
+
+	m_shortcutController->addFunctions(autofireMenu, [this]() {
+		m_controller->setAutofire(GBA_KEY_A, true);
+	}, [this]() {
+		m_controller->setAutofire(GBA_KEY_A, false);
+	}, QKeySequence("W"), tr("Autofire A"), "autofireA");
+
+	m_shortcutController->addFunctions(autofireMenu, [this]() {
+		m_controller->setAutofire(GBA_KEY_B, true);
+	}, [this]() {
+		m_controller->setAutofire(GBA_KEY_B, false);
+	}, QKeySequence("Q"), tr("Autofire B"), "autofireB");
+
+	m_shortcutController->addFunctions(autofireMenu, [this]() {
+		m_controller->setAutofire(GBA_KEY_L, true);
+	}, [this]() {
+		m_controller->setAutofire(GBA_KEY_L, false);
+	}, QKeySequence(), tr("Autofire L"), "autofireL");
+
+	m_shortcutController->addFunctions(autofireMenu, [this]() {
+		m_controller->setAutofire(GBA_KEY_R, true);
+	}, [this]() {
+		m_controller->setAutofire(GBA_KEY_R, false);
+	}, QKeySequence(), tr("Autofire R"), "autofireR");
+
+	m_shortcutController->addFunctions(autofireMenu, [this]() {
+		m_controller->setAutofire(GBA_KEY_START, true);
+	}, [this]() {
+		m_controller->setAutofire(GBA_KEY_START, false);
+	}, QKeySequence(), tr("Autofire Start"), "autofireStart");
+
+	m_shortcutController->addFunctions(autofireMenu, [this]() {
+		m_controller->setAutofire(GBA_KEY_SELECT, true);
+	}, [this]() {
+		m_controller->setAutofire(GBA_KEY_SELECT, false);
+	}, QKeySequence(), tr("Autofire Select"), "autofireSelect");
+
+	m_shortcutController->addFunctions(autofireMenu, [this]() {
+		m_controller->setAutofire(GBA_KEY_UP, true);
+	}, [this]() {
+		m_controller->setAutofire(GBA_KEY_UP, false);
+	}, QKeySequence(), tr("Autofire Up"), "autofireUp");
+
+	m_shortcutController->addFunctions(autofireMenu, [this]() {
+		m_controller->setAutofire(GBA_KEY_RIGHT, true);
+	}, [this]() {
+		m_controller->setAutofire(GBA_KEY_RIGHT, false);
+	}, QKeySequence(), tr("Autofire Right"), "autofireRight");
+
+	m_shortcutController->addFunctions(autofireMenu, [this]() {
+		m_controller->setAutofire(GBA_KEY_DOWN, true);
+	}, [this]() {
+		m_controller->setAutofire(GBA_KEY_DOWN, false);
+	}, QKeySequence(), tr("Autofire Down"), "autofireDown");
+
+	m_shortcutController->addFunctions(autofireMenu, [this]() {
+		m_controller->setAutofire(GBA_KEY_LEFT, true);
+	}, [this]() {
+		m_controller->setAutofire(GBA_KEY_LEFT, false);
+	}, QKeySequence(), tr("Autofire Left"), "autofireLeft");
 
 	foreach (QAction* action, m_gameActions) {
 		action->setDisabled(true);

@@ -308,14 +308,14 @@ void GBAGUIRun(struct GBAGUIRunner* runner, const char* path) {
 			case RUNNER_SAVE_STATE:
 				vf = GBAGetState(runner->context.gba, 0, ((int) item->data) >> 16, true);
 				if (vf) {
-					GBASaveStateNamed(runner->context.gba, vf, true);
+					GBASaveStateNamed(runner->context.gba, vf, SAVESTATE_SCREENSHOT);
 					vf->close(vf);
 				}
 				break;
 			case RUNNER_LOAD_STATE:
 				vf = GBAGetState(runner->context.gba, 0, ((int) item->data) >> 16, false);
 				if (vf) {
-					GBALoadStateNamed(runner->context.gba, vf);
+					GBALoadStateNamed(runner->context.gba, vf, SAVESTATE_SCREENSHOT);
 					vf->close(vf);
 				}
 				break;
@@ -360,7 +360,7 @@ void GBAGUIRun(struct GBAGUIRunner* runner, const char* path) {
 void GBAGUIRunloop(struct GBAGUIRunner* runner) {
 	while (true) {
 		char path[PATH_MAX];
-		if (!GUISelectFile(&runner->params, path, sizeof(path), GBAIsROM)) {
+		if (!GUISelectFile(&runner->params, path, sizeof(path), 0)) {
 			break;
 		}
 		GBAGUIRun(runner, path);

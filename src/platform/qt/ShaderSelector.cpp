@@ -6,6 +6,7 @@
 #include "ShaderSelector.h"
 
 #include "ConfigController.h"
+#include "GBAApp.h"
 #include "Display.h"
 #include "VFileDevice.h"
 
@@ -57,16 +58,9 @@ void ShaderSelector::clear() {
 }
 
 void ShaderSelector::selectShader() {
-#ifdef QT_SHADER_DIR
-	QFileDialog dialog(nullptr, tr("Load shader"), QT_SHADER_DIR, tr("%1 Shader (%.shader)").arg(projectName));
-#else
-	QString path = QCoreApplication::applicationDirPath();
-#ifdef Q_OS_MAC
-	path += QLatin1String("/../Resources");
-#endif
+	QString path(GBAApp::dataDir());
 	path += QLatin1String("/shaders");
 	QFileDialog dialog(nullptr, tr("Load shader"), path, tr("%1 Shader (%.shader)").arg(projectName));
-#endif
 	dialog.setFileMode(QFileDialog::Directory);
 	dialog.exec();
 	QStringList names = dialog.selectedFiles();
@@ -123,7 +117,9 @@ void ShaderSelector::refreshShaders() {
 	disconnect(this, SIGNAL(resetToDefault()), 0, 0);
 
 #if !defined(_WIN32) || defined(USE_EPOXY)
-	m_ui.passes->addTab(makePage(static_cast<GBAGLES2Shader*>(m_shaders->preprocessShader), "default", 0), tr("Preprocessing"));
+	if (m_shaders->preprocessShader) {
+		m_ui.passes->addTab(makePage(static_cast<GBAGLES2Shader*>(m_shaders->preprocessShader), "default", 0), tr("Preprocessing"));
+	}
 	GBAGLES2Shader* shaders = static_cast<GBAGLES2Shader*>(m_shaders->passes);
 	QFileInfo fi(m_shaderPath);
 	for (size_t p = 0; p < m_shaders->nPasses; ++p) {
