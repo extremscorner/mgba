@@ -18,7 +18,7 @@
 #include <mgba-util/vfs.h>
 
 #ifndef GUI_MAX_INPUTS
-#define GUI_MAX_INPUTS 7
+#define GUI_MAX_INPUTS 12
 #endif
 
 static bool _biosNamed(const char* name) {

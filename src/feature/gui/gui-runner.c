@@ -115,7 +115,7 @@ static void _drawState(struct GUIBackground* background, void* id) {
 		struct VFile* vf = mCoreGetState(gbaBackground->p->core, stateId, false);
 		color_t* pixels = gbaBackground->screenshot;
 		if (!pixels) {
-			pixels = anonymousMemoryMap(w * h * 4);
+			pixels = anonymousMemoryMap(w * h * BYTES_PER_PIXEL);
 			gbaBackground->screenshot = pixels;
 		}
 		bool success = false;
@@ -224,6 +224,18 @@ void mGUIInit(struct mGUIRunner* runner, const char* port) {
 		ThreadCreate(&runner->autosave.thread, mGUIAutosaveThread, &runner->autosave);
 	}
 #endif
+
+	if (runner->setup) {
+		mLOG(GUI_RUNNER, DEBUG, "Setting up runner...");
+		runner->setup(runner);
+	}
+	if (runner->keySources) {
+		mLOG(GUI_RUNNER, DEBUG, "Loading key sources for %s...", runner->config.port);
+		size_t i;
+		for (i = 0; runner->keySources[i].id; ++i) {
+			mInputMapLoad(&runner->params.keyMap, runner->keySources[i].id, mCoreConfigGetInput(&runner->config));
+		}
+	}
 }
 
 void mGUIDeinit(struct mGUIRunner* runner) {
@@ -381,9 +393,8 @@ void mGUIRun(struct mGUIRunner* runner, const char* path) {
 	mLOG(GUI_RUNNER, DEBUG, "Loading save...");
 	mCoreAutoloadSave(runner->core);
 	mCoreAutoloadCheats(runner->core);
-	if (runner->setup) {
-		mLOG(GUI_RUNNER, DEBUG, "Setting up runner...");
-		runner->setup(runner);
+	if (runner->gameLoaded) {
+		runner->gameLoaded(runner);
 	}
 	if (runner->config.port && runner->keySources) {
 		mLOG(GUI_RUNNER, DEBUG, "Loading key sources for %s...", runner->config.port);
@@ -411,11 +422,11 @@ void mGUIRun(struct mGUIRunner* runner, const char* path) {
 	MutexUnlock(&runner->autosave.mutex);
 #endif
 
-	if (runner->gameLoaded) {
-		runner->gameLoaded(runner);
-	}
 	mLOG(GUI_RUNNER, INFO, "Game starting");
 	while (running) {
+		if (runner->unpaused) {
+			runner->unpaused(runner);
+		}
 		CircleBufferClear(&runner->fpsBuffer);
 		runner->totalDelta = 0;
 		runner->fps = 0;
@@ -426,11 +437,9 @@ void mGUIRun(struct mGUIRunner* runner, const char* path) {
 		int frame = 0;
 		bool fastForward = false;
 		while (running) {
-			if (runner->running) {
-				running = runner->running(runner);
-				if (!running) {
-					break;
-				}
+			running = runner->params.pollRunning();
+			if (!running) {
+				break;
 			}
 			uint32_t guiKeys;
 			uint32_t heldKeys;
@@ -565,9 +574,6 @@ void mGUIRun(struct mGUIRunner* runner, const char* path) {
 #endif
 			GUIPollInput(&runner->params, 0, &keys);
 		}
-		if (runner->unpaused) {
-			runner->unpaused(runner);
-		}
 	}
 	mLOG(GUI_RUNNER, DEBUG, "Shutting down...");
 	if (runner->gameUnloaded) {
@@ -618,13 +624,6 @@ void mGUIRun(struct mGUIRunner* runner, const char* path) {
 }
 
 void mGUIRunloop(struct mGUIRunner* runner) {
-	if (runner->keySources) {
-		mLOG(GUI_RUNNER, DEBUG, "Loading key sources for %s...", runner->config.port);
-		size_t i;
-		for (i = 0; runner->keySources[i].id; ++i) {
-			mInputMapLoad(&runner->params.keyMap, runner->keySources[i].id, mCoreConfigGetInput(&runner->config));
-		}
-	}
 	while (true) {
 		char path[PATH_MAX];
 		if (!GUISelectFile(&runner->params, path, sizeof(path), _testExtensions, NULL)) {
