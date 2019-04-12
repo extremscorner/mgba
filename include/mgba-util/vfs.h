@@ -97,7 +97,7 @@ struct VDir* VDirOpenZip(const char* path, int flags);
 struct VDir* VDirOpen7z(const char* path, int flags);
 #endif
 
-#if defined(__wii__) || defined(__3DS__) || defined(PSP2)
+#if defined(GEKKO) || defined(__3DS__) || defined(PSP2)
 struct VDir* VDeviceList(void);
 #endif
 
