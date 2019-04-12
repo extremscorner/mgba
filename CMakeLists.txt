@@ -228,6 +228,15 @@ elseif(UNIX)
 	list(APPEND CORE_VFS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/util/vfs/vfs-fd.c ${CMAKE_CURRENT_SOURCE_DIR}/src/util/vfs/vfs-dirent.c)
 	file(GLOB OS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/platform/posix/*.c)
 	source_group("POSIX-specific code" FILES ${OS_SRC})
+elseif(GAMECUBE)
+	set(COLOR_16_BIT ON)
+	add_definitions(-DCOLOR_16_BIT)
+
+	set(FIXED_ROM_BUFFER ON)
+	add_definitions(-DFIXED_ROM_BUFFER)
+
+	add_definitions(-D_GNU_SOURCE -DUSE_VFS_FILE -DIOAPI_NO_64)
+	list(APPEND CORE_VFS_SRC ${CMAKE_CURRENT_SOURCE_DIR}/src/util/vfs/vfs-file.c ${CMAKE_CURRENT_SOURCE_DIR}/src/util/vfs/vfs-dirent.c ${CMAKE_CURRENT_SOURCE_DIR}/src/util/vfs/vfs-devlist.c)
 endif()
 
 if(APPLE)
@@ -278,7 +287,7 @@ if(PSP2)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-format")
 endif()
 
-if(DEFINED 3DS OR DEFINED PSP2 OR DEFINED WII OR DEFINED SWITCH)
+if(DEFINED 3DS OR DEFINED PSP2 OR DEFINED GAMECUBE OR DEFINED WII OR DEFINED SWITCH)
 	set(IS_EMBEDDED ON)
 	set(USE_DEBUGGERS OFF)
 	set(USE_SQLITE3 OFF)
@@ -298,10 +307,6 @@ endif()
 if(NOT USE_DEBUGGERS)
 	set(USE_EDITLINE OFF)
 	set(USE_GDB_STUB OFF)
-endif()
-
-if(WII)
-	add_definitions(-U__STRICT_ANSI__)
 endif()
 
 include(CheckCCompilerFlag)
@@ -345,8 +350,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Generic")
 	set(BUILD_STATIC ON CACHE BOOL "" FORCE)
 	set(BUILD_SHARED OFF CACHE BOOL "" FORCE)
 	set(DISABLE_FRONTENDS ON)
-	set(MINIMAL_CORE ON)
-	set(ENABLE_EXTRA ON)
 endif()
 
 if(USE_PTHREADS)
@@ -581,6 +584,9 @@ if(WANT_PNG AND USE_ZLIB AND NOT USE_PNG)
 	set(PNG_SHARED OFF CACHE BOOL "" FORCE)
 	set(PNG_TESTS OFF CACHE BOOL "" FORCE)
 	set(SKIP_INSTALL_ALL ON)
+	if (GAMECUBE OR WII)
+		set(PNG_POWERPC_VSX "off" CACHE STRING "" FORCE)
+	endif()
 	if (SWITCH)
 		set(PNG_ARM_NEON "off" CACHE STRING "" FORCE)
 	endif()
@@ -811,7 +817,11 @@ list(APPEND CORE_SRC
 	${THIRD_PARTY_SRC})
 list(APPEND TEST_SRC ${UTIL_TEST_SRC})
 
-set(SRC ${CORE_SRC} ${VFS_SRC})
+set(SRC
+	${CORE_SRC}
+	${GUI_SRC}
+	${VFS_SRC})
+
 if(NOT MINIMAL_CORE)
 	set(ENABLE_EXTRA ON)
 	if(M_CORE_GBA)

@@ -8,12 +8,6 @@
 #include <mgba-util/gui.h>
 #include <mgba-util/gui/font.h>
 
-#ifdef _3DS
-#include <3ds.h>
-#elif defined(__SWITCH__)
-#include <switch.h>
-#endif
-
 DEFINE_VECTOR(GUIMenuItemList, struct GUIMenuItem);
 DEFINE_VECTOR(GUIMenuSavedList, struct GUIMenuSavedState);
 
@@ -62,15 +56,9 @@ enum GUIMenuExitReason GUIShowMenu(struct GUIParams* params, struct GUIMenu* men
 	GUIMenuStateInit(&state);
 	GUIInvalidateKeys(params);
 	while (true) {
-#ifdef _3DS
-		if (!aptMainLoop()) {
+		if (!params->pollRunning()) {
 			return GUI_MENU_EXIT_CANCEL;
 		}
-#elif defined(__SWITCH__)
-		if (!appletMainLoop()) {
-			return GUI_MENU_EXIT_CANCEL;
-		}
-#endif
 		enum GUIMenuExitReason reason = GUIMenuRun(params, menu, &state);
 		switch (reason) {
 		case GUI_MENU_EXIT_BACK:

@@ -63,6 +63,8 @@ static const struct mInputPlatformInfo _mGUIKeyInfo = {
 		[mGUI_INPUT_SCREENSHOT] = "Take screenshot",
 		[mGUI_INPUT_FAST_FORWARD_HELD] = "Fast forward (held)",
 		[mGUI_INPUT_FAST_FORWARD_TOGGLE] = "Fast forward (toggle)",
+		[mGUI_INPUT_SAVE_STATE] = "Save state",
+		[mGUI_INPUT_LOAD_STATE] = "Load state",
 		[mGUI_INPUT_MUTE_TOGGLE] = "Mute (toggle)",
 	},
 	.nKeys = GUI_INPUT_MAX
@@ -251,6 +253,18 @@ void mGUIInit(struct mGUIRunner* runner, const char* port) {
 		ThreadCreate(&runner->autosave.thread, mGUIAutosaveThread, &runner->autosave);
 	}
 #endif
+
+	if (runner->setup) {
+		mLOG(GUI_RUNNER, DEBUG, "Setting up runner...");
+		runner->setup(runner);
+	}
+	if (runner->keySources) {
+		mLOG(GUI_RUNNER, DEBUG, "Loading key sources for %s...", runner->config.port);
+		size_t i;
+		for (i = 0; runner->keySources[i].id; ++i) {
+			mInputMapLoad(&runner->params.keyMap, runner->keySources[i].id, mCoreConfigGetInput(&runner->config));
+		}
+	}
 }
 
 void mGUIDeinit(struct mGUIRunner* runner) {
@@ -445,9 +459,8 @@ void mGUIRun(struct mGUIRunner* runner, const char* path) {
 	mLOG(GUI_RUNNER, DEBUG, "Loading save...");
 	mCoreAutoloadSave(runner->core);
 	mCoreAutoloadCheats(runner->core);
-	if (runner->setup) {
-		mLOG(GUI_RUNNER, DEBUG, "Setting up runner...");
-		runner->setup(runner);
+	if (runner->gameLoaded) {
+		runner->gameLoaded(runner);
 	}
 	if (runner->config.port && runner->keySources) {
 		mLOG(GUI_RUNNER, DEBUG, "Loading key sources for %s...", runner->config.port);
@@ -487,8 +500,8 @@ void mGUIRun(struct mGUIRunner* runner, const char* path) {
 	MutexUnlock(&runner->autosave.mutex);
 #endif
 
-	if (runner->gameLoaded) {
-		runner->gameLoaded(runner);
+	if (runner->unpaused) {
+		runner->unpaused(runner);
 	}
 	mLOG(GUI_RUNNER, INFO, "Game starting");
 	while (running) {
@@ -502,11 +515,9 @@ void mGUIRun(struct mGUIRunner* runner, const char* path) {
 		int frame = 0;
 		bool fastForward = false;
 		while (running) {
-			if (runner->running) {
-				running = runner->running(runner);
-				if (!running) {
-					break;
-				}
+			running = runner->params.pollRunning();
+			if (!running) {
+				break;
 			}
 			uint32_t guiKeys;
 			uint32_t heldKeys;
@@ -529,6 +540,12 @@ void mGUIRun(struct mGUIRunner* runner, const char* path) {
 			}
 			if (guiKeys & (1 << mGUI_INPUT_SCREENSHOT)) {
 				mCoreTakeScreenshot(runner->core);
+			}
+			if (guiKeys & (1 << mGUI_INPUT_SAVE_STATE)) {
+				mCoreSaveState(runner->core, 0, SAVESTATE_SCREENSHOT | SAVESTATE_SAVEDATA | SAVESTATE_RTC | SAVESTATE_METADATA);
+			}
+			if (guiKeys & (1 << mGUI_INPUT_LOAD_STATE)) {
+				mCoreLoadState(runner->core, 0, SAVESTATE_SCREENSHOT | SAVESTATE_RTC);
 			}
 			bool muteTogglePressed = guiKeys & (1 << mGUI_INPUT_MUTE_TOGGLE);
 			if (muteTogglePressed) {
@@ -742,14 +759,7 @@ void mGUIRun(struct mGUIRunner* runner, const char* path) {
 }
 
 void mGUIRunloop(struct mGUIRunner* runner) {
-	if (runner->keySources) {
-		mLOG(GUI_RUNNER, DEBUG, "Loading key sources for %s...", runner->config.port);
-		size_t i;
-		for (i = 0; runner->keySources[i].id; ++i) {
-			mInputMapLoad(&runner->params.keyMap, runner->keySources[i].id, mCoreConfigGetInput(&runner->config));
-		}
-	}
-	while (!runner->running || runner->running(runner)) {
+	while (runner->params.pollRunning()) {
 		char path[PATH_MAX];
 		const char* preselect = mCoreConfigGetValue(&runner->config, "lastGame");
 		if (preselect) {

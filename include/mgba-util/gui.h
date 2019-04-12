@@ -80,6 +80,7 @@ struct GUIParams {
 
 	void (*drawStart)(void);
 	void (*drawEnd)(void);
+	bool (*pollRunning)(void);
 	uint32_t (*pollInput)(const struct mInputMap*);
 	enum GUICursorState (*pollCursor)(unsigned* x, unsigned* y);
 	int (*batteryState)(void);
