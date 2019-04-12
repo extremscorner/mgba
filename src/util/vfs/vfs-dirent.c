@@ -36,7 +36,7 @@ struct VDirDE {
 };
 
 struct VDir* VDirOpen(const char* path) {
-#ifdef __wii__
+#ifdef GEKKO
 	if (!path || !path[0]) {
 		return VDeviceList();
 	}

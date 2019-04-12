@@ -24,6 +24,8 @@ enum mGUIInput {
 	mGUI_INPUT_SCREENSHOT,
 	mGUI_INPUT_FAST_FORWARD_HELD,
 	mGUI_INPUT_FAST_FORWARD_TOGGLE,
+	mGUI_INPUT_SAVE_STATE,
+	mGUI_INPUT_LOAD_STATE,
 	mGUI_INPUT_MUTE_TOGGLE,
 };
 
@@ -92,7 +94,6 @@ struct mGUIRunner {
 	void (*incrementScreenMode)(struct mGUIRunner*);
 	void (*setFrameLimiter)(struct mGUIRunner*, bool limit);
 	uint16_t (*pollGameInput)(struct mGUIRunner*);
-	bool (*running)(struct mGUIRunner*);
 };
 
 void mGUIInit(struct mGUIRunner*, const char* port);

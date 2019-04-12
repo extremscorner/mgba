@@ -19,7 +19,7 @@
 #include <mgba-util/vfs.h>
 
 #ifndef GUI_MAX_INPUTS
-#define GUI_MAX_INPUTS 7
+#define GUI_MAX_INPUTS 12
 #endif
 
 enum {
@@ -202,16 +202,6 @@ void mGUIShowConfig(struct mGUIRunner* runner, struct GUIMenuItem* extra, size_t
 		.data = GUI_V_S("sgb.borders"),
 		.submenu = 0,
 		.state = true,
-		.validStates = (const char*[]) {
-			"Off", "On"
-		},
-		.nStates = 2
-	};
-	*GUIMenuItemListAppend(&menu.items) = (struct GUIMenuItem) {
-		.title = "Crop SGB borders",
-		.data = GUI_V_S("sgb.borderCrop"),
-		.submenu = 0,
-		.state = false,
 		.validStates = (const char*[]) {
 			"Off", "On"
 		},

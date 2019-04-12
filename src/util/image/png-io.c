@@ -588,13 +588,15 @@ bool PNGReadPixels(png_structp png, png_infop info, void* pixels, unsigned width
 		unsigned x;
 		for (x = 0; x < pngWidth; ++x) {
 #ifdef COLOR_16_BIT
-			uint16_t c = row[x * 3 + 2] >> 3;
+			uint16_t c;
 #ifdef COLOR_5_6_5
+			c = row[x * 3 + 2] >> 3;
 			c |= (row[x * 3 + 1] << 3) & 0x7E0;
 			c |= (row[x * 3] << 8) & 0xF800;
 #else
+			c = row[x * 3] >> 3;
 			c |= (row[x * 3 + 1] << 2) & 0x3E0;
-			c |= (row[x * 3] << 7) & 0x7C00;
+			c |= (row[x * 3 + 2] << 7) & 0x7C00;
 #endif
 			((uint16_t*) pixelData)[stride * i + x] = c;
 #else
@@ -651,13 +653,15 @@ bool PNGReadPixelsA(png_structp png, png_infop info, void* pixels, unsigned widt
 		unsigned x;
 		for (x = 0; x < pngWidth; ++x) {
 #ifdef COLOR_16_BIT
-			uint16_t c = row[x * 4 + 2] >> 3;
+			uint16_t c;
 #ifdef COLOR_5_6_5
+			c = row[x * 4 + 2] >> 3;
 			c |= (row[x * 4 + 1] << 3) & 0x7E0;
 			c |= (row[x * 4] << 8) & 0xF800;
 #else
+			c = row[x * 4] >> 3;
 			c |= (row[x * 4 + 1] << 2) & 0x3E0;
-			c |= (row[x * 4] << 7) & 0x7C00;
+			c |= (row[x * 4 + 2] << 7) & 0x7C00;
 #endif
 			((uint16_t*) pixelData)[stride * i + x] = c;
 #else

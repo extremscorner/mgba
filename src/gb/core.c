@@ -381,8 +381,9 @@ static void _GBCoreBaseVideoSize(const struct mCore* core, unsigned* width, unsi
 }
 
 static void _GBCoreCurrentVideoSize(const struct mCore* core, unsigned* width, unsigned* height) {
-	const struct GB* gb = core->board;
-	if (gb && (!(gb->model & GB_MODEL_SGB) || !gb->video.sgbBorders)) {
+	struct GB* gb = core->board;
+	GBDetectModel(gb);
+	if (!(gb->model & GB_MODEL_SGB) || !gb->video.sgbBorders) {
 		*width = GB_VIDEO_HORIZONTAL_PIXELS;
 		*height = GB_VIDEO_VERTICAL_PIXELS;
 	} else {

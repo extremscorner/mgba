@@ -69,9 +69,6 @@ typedef intptr_t ssize_t;
 #include <unistd.h>
 #include <sys/time.h>
 #endif
-#ifdef GEKKO
-typedef intptr_t ssize_t;
-#endif
 
 #ifdef PSP2
 // For PATH_MAX on modern toolchains
@@ -129,10 +126,7 @@ typedef intptr_t ssize_t;
 #define ATOMIC_LOAD_PTR(DST, SRC) ATOMIC_LOAD(DST, SRC)
 #endif
 
-#if defined(__3DS__) || defined(GEKKO) || defined(PSP2)
-// newlib doesn't support %z properly by default
-#define PRIz ""
-#elif defined(_MSC_VER)
+#if defined(_MSC_VER)
 #define PRIz "I"
 #else
 #define PRIz "z"
@@ -145,7 +139,7 @@ typedef intptr_t ssize_t;
 #define STORE_64BE(SRC, ADDR, ARR) *(uint64_t*) ((uintptr_t) (ARR) + (size_t) (ADDR)) = SRC
 #define STORE_32BE(SRC, ADDR, ARR) *(uint32_t*) ((uintptr_t) (ARR) + (size_t) (ADDR)) = SRC
 #define STORE_16BE(SRC, ADDR, ARR) *(uint16_t*) ((uintptr_t) (ARR) + (size_t) (ADDR)) = SRC
-#if defined(__llvm__) || (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
+#if defined(__llvm__) || (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
 #define LOAD_64LE(DEST, ADDR, ARR) DEST = __builtin_bswap64(*(uint64_t*) ((uintptr_t) (ARR) + (size_t) (ADDR)))
 #define LOAD_32LE(DEST, ADDR, ARR) DEST = __builtin_bswap32(*(uint32_t*) ((uintptr_t) (ARR) + (size_t) (ADDR)))
 #define LOAD_16LE(DEST, ADDR, ARR) DEST = __builtin_bswap16(*(uint16_t*) ((uintptr_t) (ARR) + (size_t) (ADDR)))
