@@ -132,7 +132,9 @@ void GBAUnloadROM(struct GBA* gba) {
 		if (gba->yankedRomSize) {
 			gba->yankedRomSize = 0;
 		}
+#ifndef FIXED_ROM_BUFFER
 		mappedMemoryFree(gba->memory.rom, SIZE_CART0);
+#endif
 	}
 
 	if (gba->romVf) {
