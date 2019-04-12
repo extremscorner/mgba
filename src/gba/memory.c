@@ -1662,7 +1662,7 @@ void _pristineCow(struct GBA* gba) {
 	if (!gba->isPristine) {
 		return;
 	}
-#if !defined(FIXED_ROM_BUFFER) && !defined(__wii__)
+#ifndef FIXED_ROM_BUFFER
 	void* newRom = anonymousMemoryMap(SIZE_CART0);
 	memcpy(newRom, gba->memory.rom, gba->memory.romSize);
 	memset(((uint8_t*) newRom) + gba->memory.romSize, 0xFF, SIZE_CART0 - gba->memory.romSize);

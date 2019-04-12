@@ -51,9 +51,6 @@ typedef intptr_t ssize_t;
 #define strdup _strdup
 #define lseek _lseek
 #define O_ACCMODE (O_RDONLY|O_WRONLY|O_RDWR)
-#elif defined(__wii__)
-#include <sys/time.h>
-typedef intptr_t ssize_t;
 #else
 #include <strings.h>
 #include <unistd.h>
@@ -117,10 +114,7 @@ typedef intptr_t ssize_t;
 #define ATOMIC_LOAD_PTR(DST, SRC) ATOMIC_LOAD(DST, SRC)
 #endif
 
-#if defined(_3DS) || defined(GEKKO) || defined(PSP2)
-// newlib doesn't support %z properly by default
-#define PRIz ""
-#elif defined(_WIN64)
+#if defined(_WIN64)
 #define PRIz "ll"
 #elif defined(_WIN32)
 #define PRIz ""
@@ -130,7 +124,14 @@ typedef intptr_t ssize_t;
 
 #if defined __BIG_ENDIAN__
 #define LOAD_32BE(DEST, ADDR, ARR) DEST = *(uint32_t*) ((uintptr_t) (ARR) + (size_t) (ADDR))
-#if defined(__PPC__) || defined(__POWERPC__)
+#if defined(__llvm__) || (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+#define LOAD_64LE(DEST, ADDR, ARR) DEST = __builtin_bswap64(((uint64_t*) ARR)[(ADDR) >> 3])
+#define LOAD_32LE(DEST, ADDR, ARR) DEST = __builtin_bswap32(((uint32_t*) ARR)[(ADDR) >> 2])
+#define LOAD_16LE(DEST, ADDR, ARR) DEST = __builtin_bswap16(((uint16_t*) ARR)[(ADDR) >> 1])
+#define STORE_64LE(SRC, ADDR, ARR) ((uint64_t*) ARR)[(ADDR) >> 3] = __builtin_bswap64(SRC)
+#define STORE_32LE(SRC, ADDR, ARR) ((uint32_t*) ARR)[(ADDR) >> 2] = __builtin_bswap32(SRC)
+#define STORE_16LE(SRC, ADDR, ARR) ((uint16_t*) ARR)[(ADDR) >> 1] = __builtin_bswap16(SRC)
+#elif defined(__PPC__) || defined(__POWERPC__)
 #define LOAD_32LE(DEST, ADDR, ARR) { \
 	uint32_t _addr = (ADDR); \
 	const void* _ptr = (ARR); \
@@ -188,13 +189,6 @@ typedef intptr_t ssize_t;
 		: : "r"(bswap.hi), "r"(bswap.lo), "b"(_ptr), "r"(_addr), "r"(_addr + 4) : "memory"); \
 }
 
-#elif defined(__llvm__) || (__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
-#define LOAD_64LE(DEST, ADDR, ARR) DEST = __builtin_bswap64(((uint64_t*) ARR)[(ADDR) >> 3])
-#define LOAD_32LE(DEST, ADDR, ARR) DEST = __builtin_bswap32(((uint32_t*) ARR)[(ADDR) >> 2])
-#define LOAD_16LE(DEST, ADDR, ARR) DEST = __builtin_bswap16(((uint16_t*) ARR)[(ADDR) >> 1])
-#define STORE_64LE(SRC, ADDR, ARR) ((uint64_t*) ARR)[(ADDR) >> 3] = __builtin_bswap64(SRC)
-#define STORE_32LE(SRC, ADDR, ARR) ((uint32_t*) ARR)[(ADDR) >> 2] = __builtin_bswap32(SRC)
-#define STORE_16LE(SRC, ADDR, ARR) ((uint16_t*) ARR)[(ADDR) >> 1] = __builtin_bswap16(SRC)
 #else
 #error Big endian build not supported on this platform.
 #endif

@@ -279,7 +279,8 @@ static void _GBCoreReloadConfigOption(struct mCore* core, const char* option, co
 
 static void _GBCoreDesiredVideoDimensions(struct mCore* core, unsigned* width, unsigned* height) {
 	struct GB* gb = core->board;
-	if (gb && (!(gb->model & GB_MODEL_SGB) || !gb->video.sgbBorders)) {
+	GBDetectModel(gb);
+	if (!(gb->model & GB_MODEL_SGB) || !gb->video.sgbBorders) {
 		*width = GB_VIDEO_HORIZONTAL_PIXELS;
 		*height = GB_VIDEO_VERTICAL_PIXELS;
 	} else {
