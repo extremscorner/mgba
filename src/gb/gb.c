@@ -296,7 +296,9 @@ void GBUnloadROM(struct GB* gb) {
 		if (gb->yankedRomSize) {
 			gb->yankedRomSize = 0;
 		}
+#ifndef FIXED_ROM_BUFFER
 		mappedMemoryFree(gb->memory.rom, GB_SIZE_CART_MAX);
+#endif
 	}
 
 	if (gb->romVf) {
