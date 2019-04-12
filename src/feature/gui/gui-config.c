@@ -18,7 +18,7 @@
 #include <mgba-util/vfs.h>
 
 #ifndef GUI_MAX_INPUTS
-#define GUI_MAX_INPUTS 7
+#define GUI_MAX_INPUTS 12
 #endif
 
 static bool _biosNamed(const char* name) {
@@ -173,16 +173,6 @@ void mGUIShowConfig(struct mGUIRunner* runner, struct GUIMenuItem* extra, size_t
 		.data = "sgb.borders",
 		.submenu = 0,
 		.state = true,
-		.validStates = (const char*[]) {
-			"Off", "On"
-		},
-		.nStates = 2
-	};
-	*GUIMenuItemListAppend(&menu.items) = (struct GUIMenuItem) {
-		.title = "Crop SGB borders",
-		.data = "sgb.borderCrop",
-		.submenu = 0,
-		.state = false,
 		.validStates = (const char*[]) {
 			"Off", "On"
 		},
