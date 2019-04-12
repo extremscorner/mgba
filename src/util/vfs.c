@@ -165,6 +165,7 @@ void separatePath(const char* path, char* dirname, char* basename, char* extensi
 	char* dotPoint = strrchr(path, '.');
 	char* separatorPoint = strnrstr(path, PATH_SEP, strlen(path));
 	if (separatorPoint) {
+		++separatorPoint;
 		if (dirname) {
 			ptrdiff_t len = separatorPoint - path;
 			if (PATH_MAX <= len) {
@@ -175,7 +176,7 @@ void separatePath(const char* path, char* dirname, char* basename, char* extensi
 			strncpy(dirname, path, len);
 			dirname[len] = '\0';
 		}
-		path = separatorPoint + 1;
+		path = separatorPoint;
 	} else if (dirname) {
 		strcpy(dirname, ".");
 	}

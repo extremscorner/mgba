@@ -95,7 +95,7 @@ uint32_t utf8Char(const char** unicode, size_t* length) {
 	if (*length == 0) {
 		return 0;
 	}
-	char byte = **unicode;
+	uint8_t byte = **unicode;
 	--*length;
 	++*unicode;
 	if (!(byte & 0x80)) {
